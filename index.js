@@ -2,6 +2,7 @@
 const _ = require('lodash');
 const Wreck = require('wreck');
 
+let options = {};
 const makeSlackPayload = (tags, data) => {
   let slackPayload = {};
   if (_.isString(data)) {
@@ -69,6 +70,7 @@ const doPost = (slackPayload) => {
   if (_.isObject(slackPayload)) {
     slackPayload = JSON.stringify(slackPayload);
   }
+  console.log('posting now to %s', options.slackHook)
   Wreck.request('POST', options.slackHook, {
     headers: { 'Content-type': 'application/json' },
     payload: slackPayload
@@ -79,20 +81,17 @@ const doPost = (slackPayload) => {
   });
 };
 
-module.exports.register = (options, callback) => {
+module.exports.register = (passedOptions, callback) => {
+  options = passedOptions;
   let server = options.server ? options.server : undefined;
   if (server) {
-    console.log('here')
     server.methods.postMessageToSlack = postMessageToSlack;
     server.methods.postRawDataToSlack = doPost;
+    server.methods.makeSlackPayload = makeSlackPayload;
   }
   callback();
 };
 
 module.exports.render = (options, tags, message) => {
-  // options should include server:
-  // used by postMessageToSlack to construct a nice payload:
-
   postMessageToSlack(tags, message);
-
 };

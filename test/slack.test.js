@@ -30,5 +30,59 @@ it('can load the slack plugin ', (done) => {
   });
   expect(server.methods.postMessageToSlack).to.not.equal(undefined);
   expect(server.methods.postRawDataToSlack).to.not.equal(undefined);
+  expect(server.methods.makeSlackPayload).to.not.equal(undefined);
   done();
+});
+
+it('can use the slack plugin to make a payload', (done) => {
+  const server = new Hapi.Server({});
+  const log = new Logr({
+    type: 'logr-slack',
+    plugins: {
+      'logr-slack': 'logr-slack'
+    },
+    renderOptions: {
+      'logr-slack': {
+        server,
+        slackHook: process.env.SLACK_WEBHOOK,
+        // you can provide a name for any channel allowed by the above slack webhook:
+        channel: '#hapi-slack-test'
+      }
+    }
+  });
+  const expectedPayload = '{"attachments":[{"text":"this is a posting [tag1] "}],"channel":"#hapi-slack-test"}';
+  const payload = server.methods.makeSlackPayload(['tag1'], 'this is a posting');
+  expect(payload).to.equal(expectedPayload);
+  done();
+});
+
+it('can use the slack plugin to do a post', (done) => {
+  const server = new Hapi.Server({});
+  server.connection({port: 8080});
+  const expectedPayload = {"attachments":[{"text":"this is a posting [tag1] "}],"channel":"#hapi-slack-test"};
+  server.route({
+    method: 'POST',
+    path: '/',
+    handler: (request, reply) => {
+      expect(request.payload).to.deep.equal(expectedPayload);
+      done();
+    }
+  });
+  server.start(() => {
+    const log = new Logr({
+      type: 'logr-slack',
+      plugins: {
+        'logr-slack': 'logr-slack'
+      },
+      renderOptions: {
+        'logr-slack': {
+          server,
+          slackHook: 'http://localhost:8080/',
+          // you can provide a name for any channel allowed by the above slack webhook:
+          channel: '#hapi-slack-test'
+        }
+      }
+    });
+    log(['tag1'], 'this is a posting');
+  });
 });
