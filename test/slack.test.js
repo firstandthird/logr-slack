@@ -34,7 +34,7 @@ it('can load the slack plugin ', (done) => {
   done();
 });
 
-it('can use the slack plugin to make a payload', (done) => {
+it('can use the exposed server methods to make a valid slack payload', (done) => {
   const server = new Hapi.Server({});
   const log = new Logr({
     type: 'logr-slack',
@@ -56,7 +56,7 @@ it('can use the slack plugin to make a payload', (done) => {
   done();
 });
 
-it('can use the slack plugin to do a post', (done) => {
+it('can use logr to do a post to slack', (done) => {
   const server = new Hapi.Server({});
   server.connection({port: 8080});
   const expectedPayload = {"attachments":[{"text":"this is a posting [tag1] "}],"channel":"#hapi-slack-test"};
