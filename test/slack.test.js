@@ -7,17 +7,17 @@ const Logr = require('../../../index.js');
 const path = require('path');
 const Hapi = require('hapi');
 
+const logr_slack = require('../index.js');
 it('can load the slack plugin ', (done) => {
   const server = new Hapi.Server({});
   const log = new Logr({
-    type: 'logr-slack',
+    type: 'slack',
     plugins: {
-      'logr-slack': 'logr-slack'
+      slack: 'logr-slack'
     },
     renderOptions: {
-      'logr-slack': {
+      slack: {
         server,
-        moduleName: 'logr-slack',
         slackHook: process.env.SLACK_WEBHOOK,
         // you can provide a name for any channel allowed by the above slack webhook:
         channel: '#hapi-slack-test',
