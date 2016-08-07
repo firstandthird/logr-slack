@@ -32,12 +32,13 @@ const makeSlackPayload = (tags, data) => {
   if (options.additionalFields) {
     attachment.fields = attachment.fields.concat(options.additionalFields);
   }
+  if (options.additionalTags) {
+    tags = _.union(options.additionalTags, tags);
+  }
   if (options.hideTags !== true && tags.length > 0) {
     if (typeof tags === 'string') {
-      console.log('adding string')
       attachment.fields.push({ title: 'Tags', value: tags });
     } else {
-      console.log('adding list')
       attachment.fields.push({ title: 'Tags', value: tags.join(', ') });
     }
   }
@@ -86,7 +87,6 @@ const doPost = (slackPayload) => {
   if (_.isObject(slackPayload)) {
     slackPayload = JSON.stringify(slackPayload);
   }
-  console.log('posting now to %s', options.slackHook)
   Wreck.request('POST', options.slackHook, {
     headers: { 'Content-type': 'application/json' },
     payload: slackPayload

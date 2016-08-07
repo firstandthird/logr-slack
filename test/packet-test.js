@@ -291,4 +291,33 @@ describe('packet creation', function(){
     expect(packet).to.deep.equal(expectedPacket);
     done();
   });
+  it('will post with additional tags that are specified in options', (done) => {
+    const expectedPacket = {
+      attachments: [{
+        title: 'a message',
+        fallback: 'a message',
+        fields: [{
+          "title": "Tags",
+          "value": "additionalTag1, additionalTag2"
+        }]
+      }],
+    };
+    log = new Logr({
+      type: 'slack',
+      plugins: {
+        slack: 'logr-slack'
+      },
+      renderOptions: {
+        slack: {
+          methods,
+          slackHook: process.env.SLACK_WEBHOOK,
+          additionalTags: ['additionalTag1', 'additionalTag2']
+        }
+      }
+    });
+    const packet = JSON.parse(methods.makeSlackPayload([], 'a message'));
+    expect(packet).to.deep.equal(expectedPacket);
+    done();
+  });
+
 });
