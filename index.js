@@ -3,50 +3,66 @@ const _ = require('lodash');
 const Wreck = require('wreck');
 
 let options = {};
+
+// used by slackPostMessage to construct a nice payload:
 const makeSlackPayload = (tags, data) => {
-  let slackPayload = {};
-  if (_.isString(data)) {
-    slackPayload = {
-      attachments: [{
-        text: `${data} [${tags}] `
-      }]
-    };
-  } else if (_.isObject(data)) {
-    // if it's a json object then format it so
-    // it displays all nicely on slack:
-    if (!data.message) {
-      // slack uses ``` to format text like an object:
-      slackPayload = {
-        attachments: [{
-          text: ` [${tags}] \`\`\` ${JSON.stringify(data, null, '  ')} \`\`\``,
-          mrkdwn_in: ['text']
-        }]
-      };
-    // if it's a json object that has a 'message' field then pull that out:
-    } else {
-      const message = data.message;
+  //clone because we muck with data
+  data = _.cloneDeep(data);
+  const attachment = {
+    fields: []
+  };
+
+  if (_.isString(data)) { //if string just pass as title and be done with it
+    attachment.title = data;
+    attachment.fallback = data;
+  } else if (_.isObject(data)) { // if object, then lets make it look good
+    //if it has a message, pull that out and display as title
+    if (data.message) {
+      attachment.title = data.message;
+      attachment.fallback = data.message;
       delete data.message;
-      slackPayload = {
-        attachments: [{
-          text: `${message} [${tags}] \`\`\` ${JSON.stringify(data, null, '  ')} \`\`\``,
-          mrkdwn_in: ['text']
-        }]
-      };
+    }
+    if (data.url) {
+      attachment.title_link = data.url;
+      delete data.url;
+    }
+    attachment.text = `\`\`\` ${JSON.stringify(data, null, '  ')} \`\`\``;
+    attachment.mrkdwn_in = ['text'];
+  }
+  if (options.additionalFields) {
+    attachment.fields = attachment.fields.concat(options.additionalFields);
+  }
+  if (options.hideTags !== true && tags.length > 0) {
+    if (typeof tags === 'string') {
+      console.log('adding string')
+      attachment.fields.push({ title: 'Tags', value: tags });
+    } else {
+      console.log('adding list')
+      attachment.fields.push({ title: 'Tags', value: tags.join(', ') });
     }
   }
   // set any colors for special tags:
   if (tags.indexOf('success') > -1) {
-    slackPayload.attachments[0].color = 'good';
+    attachment.color = 'good';
   }
   if (tags.indexOf('warning') > -1) {
-    slackPayload.attachments[0].color = 'warning';
+    attachment.color = 'warning';
   }
   if (tags.indexOf('error') > -1) {
-    slackPayload.attachments[0].color = 'danger';
+    attachment.color = 'danger';
   }
   // set any special channel:
+  const slackPayload = {
+    attachments: [attachment]
+  };
   if (options.channel) {
     slackPayload.channel = options.channel;
+  }
+  if (options.iconURL) {
+    slackPayload.icon_url = options.iconURL;
+  }
+  if (options.username) {
+    slackPayload.username = options.username;
   }
   return JSON.stringify(slackPayload);
 };
@@ -83,11 +99,11 @@ const doPost = (slackPayload) => {
 
 module.exports.register = (passedOptions, callback) => {
   options = passedOptions;
-  let server = options.server ? options.server : undefined;
-  if (server) {
-    server.methods.postMessageToSlack = postMessageToSlack;
-    server.methods.postRawDataToSlack = doPost;
-    server.methods.makeSlackPayload = makeSlackPayload;
+  let methods = options.methods ? options.methods : undefined;
+  if (methods) {
+    methods.postMessageToSlack = postMessageToSlack;
+    methods.postRawDataToSlack = doPost;
+    methods.makeSlackPayload = makeSlackPayload;
   }
   callback();
 };

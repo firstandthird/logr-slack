@@ -17,7 +17,7 @@ it('can load the slack plugin ', (done) => {
     },
     renderOptions: {
       slack: {
-        server,
+        methods: server.methods,
         slackHook: process.env.SLACK_WEBHOOK,
         // you can provide a name for any channel allowed by the above slack webhook:
         channel: '#hapi-slack-test',
@@ -34,7 +34,7 @@ it('can load the slack plugin ', (done) => {
   done();
 });
 
-it('can use the exposed server methods to make a valid slack payload', (done) => {
+it('can use the exposed server methods to make a simple slack payload', (done) => {
   const server = new Hapi.Server({});
   const log = new Logr({
     type: 'logr-slack',
@@ -43,23 +43,40 @@ it('can use the exposed server methods to make a valid slack payload', (done) =>
     },
     renderOptions: {
       'logr-slack': {
-        server,
-        slackHook: process.env.SLACK_WEBHOOK,
-        // you can provide a name for any channel allowed by the above slack webhook:
-        channel: '#hapi-slack-test'
+        methods: server.methods,
+        slackHook: process.env.SLACK_WEBHOOK
       }
     }
   });
-  const expectedPayload = '{"attachments":[{"text":"this is a posting [tag1] "}],"channel":"#hapi-slack-test"}';
+  const expectedPacket = {
+    attachments: [{
+      fallback: 'this is a posting',
+      title: 'this is a posting',
+      fields: [{
+        title: 'Tags',
+        value: 'tag1'
+      }]
+    }],
+  };
   const payload = server.methods.makeSlackPayload(['tag1'], 'this is a posting');
-  expect(payload).to.equal(expectedPayload);
+  expect(JSON.parse(payload)).to.deep.equal(expectedPacket);
   done();
 });
 
-it('can use logr to do a post to slack', (done) => {
+it('can use logr to do a basic post to slack', (done) => {
   const server = new Hapi.Server({});
   server.connection({port: 8080});
-  const expectedPayload = {"attachments":[{"text":"this is a posting [tag1] "}],"channel":"#hapi-slack-test"};
+  const expectedPayload = {
+    attachments: [{
+      fallback: 'a string',
+      title: 'a string',
+      fields: [{
+        title: 'Tags',
+        value: 'test'
+      }]
+    }],
+  };
+
   server.route({
     method: 'POST',
     path: '/',
@@ -76,13 +93,11 @@ it('can use logr to do a post to slack', (done) => {
       },
       renderOptions: {
         'logr-slack': {
-          server,
+          methods: server.methods,
           slackHook: 'http://localhost:8080/',
-          // you can provide a name for any channel allowed by the above slack webhook:
-          channel: '#hapi-slack-test'
         }
       }
     });
-    log(['tag1'], 'this is a posting');
+    log(['test'], 'a string');
   });
 });
