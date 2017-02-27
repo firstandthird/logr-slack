@@ -43,9 +43,7 @@ test('can use logr to do a basic post to slack', (t) => {
     path: '/',
     handler: (request, reply) => {
       t.deepEqual(request.payload, expectedPayload, 'should return the payload in the appropriate format');
-      // setTimeout(() => {
-        server.stop(t.end);
-      // }, 1000);
+      server.stop(t.end);
     }
   });
   server.start(() => {
