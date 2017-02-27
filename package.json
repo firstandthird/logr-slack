@@ -1,17 +1,22 @@
 {
   "name": "logr-slack",
   "version": "1.0.0",
-  "description": "",
+  "description": "plugin for logr that posts tags and log message to slack",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -u bdd test/"
+    "lint": "eslint .",
+    "test": "tape ./test/*.test.js"
   },
+  "keywords": [
+    "logr",
+    "slack"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/firstandthird/logr-slack.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "First+Third",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/firstandthird/logr-slack/issues"
   },
@@ -20,13 +25,13 @@
   },
   "homepage": "https://github.com/firstandthird/logr-slack#readme",
   "devDependencies": {
-    "chai": "^3.5.0",
     "eslint": "^3.16.1",
     "eslint-config-firstandthird": "^3.3.0",
     "eslint-plugin-import": "^2.2.0",
     "hapi": "^14.1.0",
     "logr": "2.0.0-beta.1",
-    "mocha": "^2.4.5"
+    "tap-spec": "^4.1.1",
+    "tape": "^4.6.3"
   },
   "dependencies": {
     "post2slack": "^1.0.2"
