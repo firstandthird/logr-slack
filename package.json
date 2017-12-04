@@ -33,6 +33,6 @@
     "tape": "^4.6.3"
   },
   "dependencies": {
-    "post2slack": "^1.1.0"
+    "post2slack": "^1.2.0"
   }
 }

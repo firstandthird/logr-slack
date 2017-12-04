@@ -67,3 +67,47 @@ test('can use logr to do a basic post to slack', (t) => {
     log(['test'], 'a string');
   });
 });
+
+
+test('can use logr to post with fields to slack', (t) => {
+  const expectedPayload = {
+    attachments: [{
+      fields: [{ title: 'a', value: true },
+     { title: 'b', value: false },
+     { title: 'c', value: 'yes' }]
+    }],
+  };
+  const server = new Hapi.Server({});
+  server.connection({ port: 8080 });
+  server.route({
+    method: 'POST',
+    path: '/',
+    handler: (request, reply) => {
+      t.deepEqual(request.payload, expectedPayload, 'should return the payload in the appropriate format');
+      server.stop(t.end);
+    }
+  });
+  server.start(() => {
+    const log = Logr.createLogger({
+      type: 'slack',
+      reporters: {
+        slack: {
+          reporter: logrSlack,
+          options: {
+            slackHook: 'http://localhost:8080/',
+            json2Fields: true,
+            // you can provide a name for any channel allowed by the above slack webhook:
+            channel: '#hapi-slack-test',
+            // you can list which tags will cause a server.log call to post to slack:
+            tags: ['warning', 'error', 'success', 'test'],
+            // you can specify tags that will automatically be appended to each post to slack:
+            additionalTags: ['server-test.js', 'someAdditionalTag']
+          }
+        }
+      }
+    });
+    log(['test'], 'a string');
+    log('a message');
+    log({ a: true, b: false, c: 'yes' });
+  });
+});
