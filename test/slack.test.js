@@ -64,11 +64,9 @@ tap.test('can use logr to do a basic post to slack', async (t) => {
     }
   });
   log(['test'], 'a string');
-
-  setTimeout(async () => {
-    await server.stop({ timeout: 100 });
-    await t.end();
-  }, 1000);
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  await server.stop();
+  await t.end();
 });
 
 tap.test('can use logr to post with fields to slack', async (t) => {
@@ -110,9 +108,7 @@ tap.test('can use logr to post with fields to slack', async (t) => {
     }
   });
   log({ a: true, b: false, c: 'yes' });
-
-  setTimeout(async () => {
-    await server.stop({ timeout: 100 });
-    await t.end();
-  }, 1000);
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  await server.stop({ timeout: 100 });
+  await t.end();
 });
