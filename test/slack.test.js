@@ -1,11 +1,9 @@
-'use strict';
 const Logr = require('logr');
-const Hapi = require('hapi');
+const Hapi = require('@hapi/hapi');
 const logrSlack = require('../index.js');
-const test = require('tape');
+const tap = require('tap');
 
-test('can load the slack plugin ', (t) => {
-  t.plan(1);
+tap.test('can load the slack plugin ', (t) => {
   const log = Logr.createLogger({
     type: 'slack',
     reporters: {
@@ -22,9 +20,11 @@ test('can load the slack plugin ', (t) => {
     }
   });
   t.equal(typeof log, 'function', 'should register a "log" function');
+  t.end();
 });
 
-test('can use logr to do a basic post to slack', async(t) => {
+tap.test('can use logr to do a basic post to slack', async (t) => {
+  t.plan(1);
   const expectedPayload = {
     channel: '#hapi-slack-test',
     attachments: [{
@@ -36,14 +36,13 @@ test('can use logr to do a basic post to slack', async(t) => {
       }],
     }],
   };
-  const server = new Hapi.Server({ port: 8080 });
+  const server = Hapi.server({ port: 8080 });
   server.route({
-    method: 'POST',
+    method: '*',
     path: '/',
-    handler: async(request, h) => {
-      t.deepEqual(request.payload, expectedPayload, 'should return the payload in the appropriate format');
-      await server.stop();
-      return t.end();
+    handler: (request, h) => {
+      t.strictSame(request.payload, expectedPayload, 'should return the payload in the appropriate format');
+      return 'ok';
     }
   });
   await server.start();
@@ -65,9 +64,13 @@ test('can use logr to do a basic post to slack', async(t) => {
     }
   });
   log(['test'], 'a string');
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  await server.stop();
+  await t.end();
 });
 
-test('can use logr to post with fields to slack', async(t) => {
+tap.test('can use logr to post with fields to slack', async (t) => {
+  t.plan(1);
   const expectedPayload = {
     attachments: [{
       fields: [{ title: 'a', value: true },
@@ -76,14 +79,13 @@ test('can use logr to post with fields to slack', async(t) => {
     }],
     channel: '#hapi-slack-test'
   };
-  const server = new Hapi.Server({ port: 8080 });
+  const server = Hapi.server({ port: 8080 });
   server.route({
-    method: 'POST',
+    method: '*',
     path: '/',
-    handler: async(request, h) => {
+    handler: (request, h) => {
       t.deepEqual(request.payload, expectedPayload, 'should return the payload in the appropriate format');
-      await server.stop();
-      return t.end();
+      return 'ok';
     }
   });
   await server.start();
@@ -106,4 +108,7 @@ test('can use logr to post with fields to slack', async(t) => {
     }
   });
   log({ a: true, b: false, c: 'yes' });
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  await server.stop();
+  await t.end();
 });
