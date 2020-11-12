@@ -109,6 +109,6 @@ tap.test('can use logr to post with fields to slack', async (t) => {
   });
   log({ a: true, b: false, c: 'yes' });
   await new Promise(resolve => setTimeout(resolve, 2000));
-  await server.stop({ timeout: 100 });
+  await server.stop();
   await t.end();
 });
