@@ -1,6 +1,6 @@
 {
   "name": "logr-slack",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "plugin for logr that posts tags and log message to slack",
   "main": "index.js",
   "scripts": {
